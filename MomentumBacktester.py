@@ -32,7 +32,7 @@ def calc_momentum_score(series, window):
 
 print("📥 Downloading Historical Market Data (This may take a minute)...")
 data = yf.download(TICKERS, start=START_DATE, end=END_DATE, group_by='ticker', progress=False)
-nifty = yf.download('^NSEI', start=START_DATE, end=END_DATE, progress=False)
+nifty = yf.download('^NSEI', start=START_DATE, end=END_DATE, progress=False, multi_level_index=False)
 
 # Pre-calculate Nifty 200-SMA Macro Filter
 nifty['200_SMA'] = nifty['Close'].rolling(window=200).mean()
@@ -171,13 +171,19 @@ final_equity = results['Equity'].iloc[-1]
 cagr = ((final_equity / INITIAL_CAPITAL) ** (1 / (len(results) / 252))) - 1
 max_dd = results['Drawdown'].min()
 
-print("-" * 40)
-print(f"🏁 BACKTEST COMPLETE ({START_DATE} to {END_DATE})")
-print(f"Initial Capital: ₹{INITIAL_CAPITAL:,.2f}")
-print(f"Final Equity:    ₹{final_equity:,.2f}")
-print(f"CAGR:            {cagr * 100:.2f}%")
-print(f"Max Drawdown:    {max_dd * 100:.2f}%")
-print("-" * 40)
+summary_text = (
+    "-" * 40 + "\n" +
+    f"🏁 BACKTEST COMPLETE ({START_DATE} to {END_DATE})\n" +
+    f"Initial Capital: ₹{INITIAL_CAPITAL:,.2f}\n" +
+    f"Final Equity:    ₹{final_equity:,.2f}\n" +
+    f"CAGR:            {cagr * 100:.2f}%\n" +
+    f"Max Drawdown:    {max_dd * 100:.2f}%\n" +
+    "-" * 40
+)
+print(summary_text)
+
+with open('backtest_results.txt', 'w') as f:
+    f.write(summary_text + "\n")
 
 # Plotting
 plt.figure(figsize=(12, 6))
@@ -187,4 +193,4 @@ plt.yscale('log') # Log scale shows true compound growth
 plt.ylabel('Portfolio Equity (Log Scale)')
 plt.grid(True, alpha=0.3)
 plt.legend()
-plt.show()
+plt.savefig("backtest_curve.png")
